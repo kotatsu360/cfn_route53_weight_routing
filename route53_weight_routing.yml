@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  RootDomain:
+    Type: 'String'
+  Route53HostedZoneId:
+    Type: 'AWS::Route53::HostedZone::Id'
+  PublicSubnetAZ1:
+    Type: 'AWS::EC2::Subnet::Id'
+  PublicSubnetAZ2:
+    Type: 'AWS::EC2::Subnet::Id'
+Resources:
+  Route53RecordSetGroup:
+    Type: 'AWS::Route53::RecordSetGroup'
+    Properties:
+      HostedZoneId: !Ref Route53HostedZoneId
+      RecordSets:
+        -
+          AliasTarget:
+            DNSName: !GetAtt ElasticLoadBalancingV2LoadBalancer1.DNSName
+            EvaluateTargetHealth: false
+            HostedZoneId: !GetAtt ElasticLoadBalancingV2LoadBalancer1.CanonicalHostedZoneID
+          # Comment: String
+          # Failover: String
+          # GeoLocation:
+          #   GeoLocation
+          # HealthCheckId: String
+          # HostedZoneId: String
+          # HostedZoneName: String
+          Name: !Sub ${RootDomain}.
+          # Region: String
+          # ResourceRecords:
+          #   - String
+          SetIdentifier: 'now api'
+          # TTL: String
+          Type: 'A'
+          Weight: 9
+        -
+          AliasTarget:
+            DNSName: !GetAtt ElasticLoadBalancingV2LoadBalancer2.DNSName
+            EvaluateTargetHealth: false
+            HostedZoneId: !GetAtt ElasticLoadBalancingV2LoadBalancer2.CanonicalHostedZoneID
+          # Comment: String
+          # Failover: String
+          # GeoLocation:
+          #   GeoLocation
+          # HealthCheckId: String
+          # HostedZoneId: String
+          # HostedZoneName: String
+          Name: !Sub ${RootDomain}.
+          # Region: String
+          # ResourceRecords:
+          #   - String
+          SetIdentifier: 'new api'
+          # TTL: String
+          Type: 'A'
+          Weight: 1
+
+# Test ALB
+  ElasticLoadBalancingV2LoadBalancer1:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Scheme: 'internet-facing'
+      Subnets:
+        - !Ref PublicSubnetAZ1
+        - !Ref PublicSubnetAZ2
+      Type: 'application'
+      IpAddressType: 'ipv4'
+
+  ElasticLoadBalancingV2LoadBalancer2:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Scheme: 'internet-facing'
+      Subnets:
+        - !Ref PublicSubnetAZ1
+        - !Ref PublicSubnetAZ2
+      Type: 'application'
+      IpAddressType: 'ipv4'
+
